@@ -133,9 +133,9 @@ def main():
     for n, p in zip(names, g):
         frame(p, k, f"{OUT}/g_{n}.png")
 
-    # His reflection, who is Harpo, is for now drawn with the four Harpo frames below.
-    # Given harpo.jpeg, the same sheet redrawn with him (see assets/PROMPTS.md), the
-    # sixteen frames are cut from it as hp_* for src/mirror.c to use instead.
+    # His reflection is Harpo: harpo.jpeg is the same sheet redrawn with him (see
+    # assets/PROMPTS.md), cut into the same sixteen frames as hp_*. The four Harpo
+    # frames from others.jpeg below are for his own gags (the horn, the dropped hat).
     import os
     if os.path.exists(f"{SRC}/harpo.jpeg"):
         hp = drawings(key(load(f"{SRC}/harpo.jpeg")), 16, "harpo")
