@@ -41,7 +41,7 @@ in front, turned the other way round, as a mirror would show it: the lamp on the
 left is seen on the right through the frame. The "reflection" stands beyond the
 wall, so he is only ever seen through the frame, a little further off and a little
 smaller, and when he steps aside the wall hides him. His every move is the first
-man's, a moment later. `tools/compose_room.py` builds the room from a drawing of the
+man's, a moment later, and he is Harpo: blond curls show under his nightcap. `tools/compose_room.py` builds the room from a drawing of the
 room alone, and draws the gilt frame.
 
 ## Install

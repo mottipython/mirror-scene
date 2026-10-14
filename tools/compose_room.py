@@ -36,7 +36,7 @@ def on_wall(x, up):
     top = VP[1] + (-0.02 - VP[1]) * k
     return (x, foot + (top - foot) * up)
 WALL = [on_wall(WALL_END, 1), on_wall(1.02, 1), on_wall(1.02, 0), on_wall(WALL_END, 0)]
-OPENING = [on_wall(0.52, 0.66), on_wall(0.70, 0.66), on_wall(0.70, 0), on_wall(0.52, 0)]
+OPENING = [on_wall(0.52, 0.58), on_wall(0.70, 0.58), on_wall(0.70, 0), on_wall(0.52, 0)]
 PAPER = (0.36, 0.0, 0.64, BASE)      # the back wall between the lamps, panelling and all
 WALL_SHADE = 0.8
 FAR_SCALE, FAR_DIM = 0.75, 0.86      # the room beyond
@@ -72,12 +72,13 @@ def inside(frame):
     x0 = max(i for i in range(cx) if row[i]) + 1
     x1 = min(i for i in range(cx, w) if row[i])
     y0 = max(i for i in range(cy) if col[i]) + 1
-    y1 = min(i for i in range(cy, h) if col[i])
+    y1 = min([i for i in range(cy, h) if col[i]] or [h])   # no bottom bar: the inside goes to the floor
     return x0, y0, x1, y1
 
 def draw_frame(W=1000, H=1560, band=110):
     """An empty gilt frame, drawn: moulded bands of gold with ink between them, a
-    rosette at each corner, and a shell crest on top. The inside is clear."""
+    rosette at the top corners, and a shell crest on top. It has no bottom bar: its
+    sides stand on the floor, like a doorway. The inside is clear."""
     im = Image.new("RGBA", (W, H + 160), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     top = 160
@@ -85,10 +86,12 @@ def draw_frame(W=1000, H=1560, band=110):
     steps = [0, 0.12, 0.3, 0.45, 0.6, 0.82, 1.0]
     for k, c in enumerate(GOLD):                     # the mouldings, from the outside in
         o = band * steps[k]
-        d.rectangle([o, top + o, W - 1 - o, top + H - 1 - o], fill=c + (255,), outline=INK, width=4)
-    d.rectangle([band, top + band, W - 1 - band, top + H - 1 - band], fill=(0, 0, 0, 0), outline=INK, width=7)
-    d.rectangle([0, top, W - 1, top + H - 1], outline=INK, width=9)
-    for cx, cy in ((band / 2, top + band / 2), (W - band / 2, top + band / 2), (band / 2, top + H - band / 2), (W - band / 2, top + H - band / 2)):
+        d.rectangle([o, top + o, W - 1 - o, top + H + band], fill=c + (255,), outline=INK, width=4)
+    d.rectangle([band, top + band, W - 1 - band, top + H + band], fill=(0, 0, 0, 0), outline=INK, width=7)
+    d.rectangle([0, top, W - 1, top + H + band], outline=INK, width=9)
+    im = im.crop((0, 0, W, top + H))               # cut level with the floor
+    d = ImageDraw.Draw(im)
+    for cx, cy in ((band / 2, top + band / 2), (W - band / 2, top + band / 2)):
         r = band * 0.34                               # a rosette at each corner
         d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=GOLD[3] + (255,), outline=INK, width=5)
         d.ellipse([cx - r * 0.4, cy - r * 0.4, cx + r * 0.4, cy + r * 0.4], fill=GOLD[1] + (255,), outline=INK, width=4)
