@@ -27,7 +27,7 @@ OUT = "assets/src/room.jpeg"
 # floor, and it runs off the picture to the right. Its top and foot are straight lines
 # that meet at the vanishing point, and the opening's corners lie on lines to it too.
 BASE = 0.685                         # the foot of the back wall, down the picture
-VP = (0.037, 0.437)                  # where the wall's lines meet
+VP = (-0.25, 0.437)                  # where the wall's lines meet: far off, so it is turned only a little toward us
 WALL_END = 0.47
 def on_wall(x, up):
     """The point on the wall `x` across and `up` of the way from its foot to its top."""
@@ -79,9 +79,9 @@ def draw_frame(W=1000, H=1560, band=110):
     """An empty gilt frame, drawn: moulded bands of gold with ink between them, a
     rosette at the top corners, and a shell crest on top. It has no bottom bar: its
     sides stand on the floor, like a doorway. The inside is clear."""
-    im = Image.new("RGBA", (W, H + 160), (0, 0, 0, 0))
+    im = Image.new("RGBA", (W, H + 300), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    top = 160
+    top = 300
     GOLD = [(120, 78, 20), (196, 146, 52), (232, 188, 86), (252, 226, 150), (214, 166, 64), (150, 104, 32)]
     steps = [0, 0.12, 0.3, 0.45, 0.6, 0.82, 1.0]
     for k, c in enumerate(GOLD):                     # the mouldings, from the outside in
@@ -95,16 +95,35 @@ def draw_frame(W=1000, H=1560, band=110):
         r = band * 0.34                               # a rosette at each corner
         d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=GOLD[3] + (255,), outline=INK, width=5)
         d.ellipse([cx - r * 0.4, cy - r * 0.4, cx + r * 0.4, cy + r * 0.4], fill=GOLD[1] + (255,), outline=INK, width=4)
-    cx, cy, R = W / 2, top + 10, 190                  # the shell crest
-    d.pieslice([cx - R, cy - R, cx + R, cy + R], 180, 360, fill=GOLD[2] + (255,), outline=INK, width=7)
-    for a in range(196, 345, 16):
-        t = np.radians(a)
-        d.line([(cx, cy), (cx + R * 0.92 * np.cos(t), cy + R * 0.92 * np.sin(t))], fill=INK, width=4)
-    d.ellipse([cx - 34, cy - 34, cx + 34, cy + 34], fill=GOLD[3] + (255,), outline=INK, width=5)
-    for side in (-1, 1):                              # scrolls either side of it
-        sx = cx + side * (R + 70)
-        d.arc([sx - 70, cy - 70, sx + 70, cy + 40], 180 if side < 0 else 270, 360 if side < 0 else 180 + 270, fill=INK, width=9)
-        d.ellipse([sx - 26, cy - 40, sx + 26, cy + 12], fill=GOLD[2] + (255,), outline=INK, width=5)
+    # the crest: an Art Deco sunburst on a stepped base, like the wallpaper's fans,
+    # drawn at twice the size and scaled down for smooth edges
+    S = 2
+    cw, chh = 760, 320
+    crest = Image.new("RGBA", (cw * S, chh * S), (0, 0, 0, 0))
+    c = ImageDraw.Draw(crest)
+    ink = INK
+    def box(x0, y0, x1, y1, fill):
+        c.rectangle([x0 * S, y0 * S, x1 * S, y1 * S], fill=fill + (255,), outline=ink, width=4 * S)
+    base = chh - 6
+    for i, (half, tall) in enumerate(((330, 34), (250, 30), (170, 28))):        # the steps
+        y1 = base - sum(t for _, t in ((330, 34), (250, 30), (170, 28))[:i]); y0 = y1 - tall
+        box(cw / 2 - half, y0, cw / 2 + half, y1, GOLD[1 + i % 2])
+        c.line([((cw / 2 - half + 8) * S, (y0 + 7) * S), ((cw / 2 + half - 8) * S, (y0 + 7) * S)], fill=GOLD[3] + (255,), width=3 * S)
+    top_step = base - 92
+    fx, fy, R = cw / 2, top_step, 200                                             # the sunburst
+    rays = 13
+    for k in range(rays):
+        a0, a1 = 180 + 180 * k / rays, 180 + 180 * (k + 1) / rays
+        c.pieslice([(fx - R) * S, (fy - R) * S, (fx + R) * S, (fy + R) * S], a0, a1,
+                   fill=(GOLD[2] if k % 2 else GOLD[4]) + (255,), outline=ink, width=3 * S)
+    for k in range(rays):                                                        # a scalloped rim
+        t = np.radians(180 + 180 * (k + 0.5) / rays)
+        x, y, r = fx + (R - 2) * np.cos(t), fy + (R - 2) * np.sin(t), 22
+        c.ellipse([(x - r) * S, (y - r) * S, (x + r) * S, (y + r) * S], fill=GOLD[3] + (255,), outline=ink, width=3 * S)
+    c.pieslice([(fx - 62) * S, (fy - 62) * S, (fx + 62) * S, (fy + 62) * S], 180, 360, fill=GOLD[3] + (255,), outline=ink, width=4 * S)
+    c.pieslice([(fx - 30) * S, (fy - 30) * S, (fx + 30) * S, (fy + 30) * S], 180, 360, fill=GOLD[1] + (255,), outline=ink, width=3 * S)
+    crest = crest.resize((cw, chh), Image.LANCZOS)
+    im.alpha_composite(crest, (round(W / 2 - cw / 2), round(top - chh + 40)))
     return im
 
 def main():
@@ -143,19 +162,45 @@ def main():
     paper = Image.fromarray(arr.astype(np.uint8))
     # laid end to end, every other one turned over, so the joins match (the pattern
     # and the panels are symmetrical)
-    run = Image.new("RGBA", (paper.width * 4, paper.height))
-    for i in range(4): run.paste(paper if i % 2 == 0 else ImageOps.mirror(paper), (i * paper.width, 0))
-    paper = run
+    # as long as the wall is, so the pattern is not stretched: where the wall meets the
+    # back wall it is drawn at the same scale across as up
+    (ex, ey0), (ex1, ey1) = on_wall(WALL_END, 1), on_wall(1.02, 1)
+    h0 = on_wall(WALL_END, 0)[1] - ey0; h1 = on_wall(1.02, 0)[1] - ey1
+    length = (1.02 - WALL_END) * w * (h1 / h0) / (h0 * h / paper.height)
+    n = int(np.ceil(length / paper.width))
+    run = Image.new("RGBA", (paper.width * n, paper.height))
+    for i in range(n): run.paste(paper if i % 2 == 0 else ImageOps.mirror(paper), (i * paper.width, 0))
+    paper = run.crop((0, 0, round(length), paper.height))
     pw, ph = paper.size
     wall = paper.transform((w, h), Image.PERSPECTIVE, coeffs([(0, 0), (pw, 0), (pw, ph), (0, ph)], P(WALL)), Image.BICUBIC)
     room.paste(wall, (0, 0), mask(WALL))
 
     # its end against the back wall and its foot, inked
     d = ImageDraw.Draw(room)
-    d.line([P(WALL)[0], P(WALL)[3], P(WALL)[2]], fill=INK, width=max(2, round(w * 0.003)), joint="curve")
+    lw = max(2, round(w * 0.003))
+    d.line([P(WALL)[0], P(WALL)[3]], fill=INK, width=lw)
+    d.line([P(WALL)[3], P(OPENING)[3]], fill=INK, width=lw)        # not across the opening
+    d.line([P(OPENING)[2], P(WALL)[2]], fill=INK, width=lw)
 
-    # the opening, right down to the floor, and the frame round it
+    # the opening, right down to the floor, and the frame round it. Just above its
+    # foot, the floor in front of it is seen again, as a mirror shows it, so that the
+    # floor runs on into the glass without a seam
     room.paste(beyond, (0, 0), mask(OPENING))
+    arr = np.array(room).astype(float); src = np.asarray(clean).astype(float)
+    D = round(0.05 * h)
+    (ax, ay), (bx, by) = P([OPENING[3], OPENING[2]])
+    for x in range(round(ax), round(bx)):
+        foot = ay + (by - ay) * (x - ax) / (bx - ax)
+        for d in range(D):
+            yd = int(foot) - d
+            ys = 2 * foot - yd                         # its mirror image below the foot, between rows
+            i = int(ys); fr = ys - i
+            if i + 1 >= h: break
+            pix = src[i, x, :3] * (1 - fr) + src[i + 1, x, :3] * fr
+            f = (1 - d / D) ** 1.5
+            arr[yd, x, :3] = arr[yd, x, :3] * (1 - f) + pix * FAR_DIM * f
+    arr = arr.clip(0, 255).astype(np.uint8)
+    room = Image.fromarray(arr)
     frame = keyed(FRAME) if os.path.exists(FRAME) else draw_frame()
     x0, y0, x1, y1 = inside(frame)
     fw = frame.transform((w, h), Image.PERSPECTIVE, coeffs([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], P(OPENING)), Image.BICUBIC)
