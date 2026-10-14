@@ -123,7 +123,7 @@ def main():
     far = ImageOps.mirror(clean).resize((round(w * s), round(h * s)), Image.LANCZOS)
     far = ImageEnhance.Brightness(far).enhance(FAR_DIM)
     ox = FAR_LAMP * w - far.width * LAMP_AT
-    oy = (OPENING[3][1] + OPENING[2][1]) / 2 * h - 0.03 * h - far.height * BASE
+    oy = (OPENING[3][1] + OPENING[2][1]) / 2 * h - 0.065 * h - far.height * BASE
     # above it, the top of its wall carries on up, so the opening is filled however tall
     if oy > 0:
         strip = far.crop((0, 0, far.width, round(oy) + 2)).transpose(Image.FLIP_TOP_BOTTOM)

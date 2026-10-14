@@ -271,7 +271,7 @@ static Bubble bubbles[4]; /* x across the screen, y up from the floor in his hei
 #define PATH_AX 0.05
 #define PATH_AY 0.80
 #define PATH_BX 1.05
-#define PATH_BY 0.73
+#define PATH_BY 0.69
 #define TALL 0.48
 #define FAR_SCALE 0.55
 static int nhat, nbubble;
@@ -347,7 +347,7 @@ static void build_round(void)
 
     /* he drops his hat: G has none to drop. G picks one up anyway, and so on. Where
      * the hat is held in the drawings, in his heights from his middle and the floor: */
-    const double DROP_X = 0.36, DROP_Y = 0.44, HOLD_X = 0.34, HOLD_Y = 0.42;
+    const double DROP_X = 0.2, DROP_Y = 0.44, HOLD_X = 0.34, HOLD_Y = 0.42;
     h(now, SP_h_drop);
     g(SP_g_brows, 0.45);
     h(now, SP_h_stand);
