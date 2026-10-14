@@ -62,10 +62,6 @@
     X(g_stand, "g_stand.png") X(g_peer, "g_peer.png") X(g_brows, "g_brows.png") X(g_cigar, "g_cigar.png") \
     X(g_arms, "g_arms.png") X(g_kick, "g_kick.png") X(g_spin, "g_spin.png") X(g_crouch, "g_crouch.png") \
     X(g_wave, "g_wave.png") X(g_hold, "g_hold.png") X(g_hat_on, "g_hat_on.png") X(g_grin, "g_grin.png") \
-    X(hp_w1, "hp_w1.png") X(hp_w2, "hp_w2.png") X(hp_w3, "hp_w3.png") X(hp_w4, "hp_w4.png") \
-    X(hp_stand, "hp_stand.png") X(hp_peer, "hp_peer.png") X(hp_brows, "hp_brows.png") X(hp_cigar, "hp_cigar.png") \
-    X(hp_arms, "hp_arms.png") X(hp_kick, "hp_kick.png") X(hp_spin, "hp_spin.png") X(hp_crouch, "hp_crouch.png") \
-    X(hp_wave, "hp_wave.png") X(hp_hold, "hp_hold.png") X(hp_hat_on, "hp_hat_on.png") X(hp_grin, "hp_grin.png") \
     X(h_stand, "h_stand.png") X(h_horn, "h_horn.png") X(h_drop, "h_drop.png") X(h_grin, "h_grin.png") \
     X(c_w1, "c_w1.png") X(c_w2, "c_w2.png") X(c_stand, "c_stand.png") X(c_shrug, "c_shrug.png")
 #define X(name, file) ART(name, file)
@@ -393,7 +389,8 @@ static void build_round(void)
     key(&C, ROUND + 10, 0.5, SP_c_shrug, 0, 0);
 }
 
-typedef struct { int pose; double x; int flip; } Pose;
+/* lift: how far off the floor, and shrink: how much shorter (ducking), both in his heights */
+typedef struct { int pose; double x; int flip; double lift, shrink; } Pose;
 
 static int find(const Track *tr, double t)
 {
@@ -422,10 +419,22 @@ static Pose g_at(double t) { return at(&G, t, G_WALK, 4, 0.045); }
 static Pose h_at(double t)
 {
     const Key *k = &Hk.k[find(&Hk, t)];
-    if (k->pose != MIRROR) return (Pose){k->pose, k->x, 0};
+    if (k->pose != MIRROR) return (Pose){k->pose, k->x, 0, 0, 0};
+    /* He is Harpo, in the same disguise, and there are only four drawings of him
+     * (standing, the horn, the hand out, the grin), so each of Groucho's moves is
+     * answered with the nearest of them: he hops along where Groucho walks, ducks
+     * where he crouches, and turns round where he spins. His drawings face left. */
     Pose p = g_at(t - k->lag);
-    p.x = 1 - p.x; p.flip = !p.flip;
-    if (p.pose >= SP_g_w1 && p.pose <= SP_g_grin) p.pose += SP_hp_w1 - SP_g_w1;   /* it is Harpo, in the same disguise */
+    p.x = 1 - p.x;
+    int toward = !p.flip;                    /* facing the frame, as the reflection should */
+    int pose = p.pose;
+    p.pose = SP_h_stand;
+    if (pose >= SP_g_w1 && pose <= SP_g_w4) p.lift = 0.03 * fabs(sin(t * 9));
+    else if (pose == SP_g_crouch) p.shrink = 0.18;
+    else if (pose == SP_g_spin) toward = !toward;
+    else if (pose == SP_g_arms || pose == SP_g_kick || pose == SP_g_wave || pose == SP_g_grin || pose == SP_g_hat_on) p.pose = SP_h_grin;
+    else if (pose == SP_g_hold || pose == SP_g_cigar) p.pose = SP_h_drop;
+    p.flip = !toward;
     return p;
 }
 
@@ -442,11 +451,11 @@ static int sw, sh;
 static double rx0, ry0, rw, rh;  /* where the room picture is on the screen */
 
 /* one frame of a figure, feet at (x, y); the frames are all to one scale, 480 high */
-static void figure(int which, double x, double y, double tall, int flip, double alpha)
+static void figure(int which, double x, double y, double tall, int flip, double alpha, double shrink)
 {
     flush(ren);
     if (which < 0 || alpha <= 0.01 || !cur_tex || !cur_tex[which]) return;
-    double k = tall / 480.0, w = sprite[which].w * k, hgt = sprite[which].h * k;
+    double k = tall / 480.0, w = sprite[which].w * k, hgt = sprite[which].h * k * (1 - shrink);
     SDL_FRect dst = {(float)(x - w / 2), (float)(y - hgt + 10 * k), (float)w, (float)hgt};
     SDL_SetTextureAlphaMod(cur_tex[which], (Uint8)(fmin(alpha, 1) * 255));
     SDL_RenderCopyExF(ren, cur_tex[which], NULL, &dst, 0, NULL, flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
@@ -476,8 +485,8 @@ static void person(Pose p)
     double x, feet, tall;
     spot(p.x, &x, &feet, &tall);
     if (x < -tall || x > sw + tall) return;
-    shadow(x, feet, tall * 0.2);
-    figure(p.pose, x, feet, tall, p.flip, 1);
+    shadow(x, feet, tall * 0.2 * (1 - p.lift * 4));
+    figure(p.pose, x, feet - p.lift * tall, tall, p.flip, 1, p.shrink);
 }
 static void hat_at(double x, double y, double tall, double deg)
 {

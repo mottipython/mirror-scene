@@ -125,55 +125,6 @@ def frame(p, k, path):
     save(canvas, w, h, path)
     print(f"{path.split('/')[-1]:14} {w}x{h}")
 
-def harpo(path_in, path_out):
-    """The same frame with Harpo under the nightcap: Groucho's dark hair, which is
-    behind his face (the brows and moustache are in front of it), made blond, and a
-    bush of blond curls peeking out round the back of his head. The frames face right."""
-    from PIL import Image, ImageDraw, ImageFilter
-    im = Image.open(path_in).convert("RGBA")
-    a = np.asarray(im).astype(int)
-    h, w = a.shape[:2]
-    solid = a[..., 3] > 128
-    rows = np.nonzero(solid.any(axis=1))[0]
-    top, bottom = rows.min(), rows.max()
-    head = np.zeros_like(solid)
-    head[top:top + int((bottom - top) * 0.34)] = True
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    skin = solid & head & (r > 190) & (g > 130) & (g < 215) & (b > 100) & (b < 190) & (r - b > 40)
-    if skin.sum() < 30:
-        return im.save(path_out)
-    ys, xs = np.nonzero(skin)
-    fx, fw = np.median(xs), xs.max() - xs.min()
-    xx = np.arange(w)[None, :].repeat(h, axis=0)
-    dark = solid & head & (np.maximum(np.maximum(r, g), b) < 95) & (xx < fx - fw * 0.12)
-    fill = dark & (np.maximum(np.maximum(r, g), b) >= 26)
-    out = a.copy()
-    k = (np.maximum(np.maximum(r, g), b)[fill] - 26) / 70.0          # keep its light and shade
-    out[fill, 0] = (214 + 30 * k).clip(0, 255)
-    out[fill, 1] = (168 + 40 * k).clip(0, 255)
-    out[fill, 2] = (60 + 40 * k).clip(0, 255)
-    # curls behind the head, showing only where they stick out beyond him
-    curls = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(curls)
-    R = max(4, int((bottom - top) * 0.035))
-    dy, dx = np.nonzero(dark)
-    if len(dx):
-        rng = np.random.default_rng(int(fx * 7 + top))
-        blobs = []
-        for i in rng.choice(len(dx), size=min(70, len(dx)), replace=False):
-            blobs.append((dx[i] + rng.integers(-R, R), dy[i] + rng.integers(-R, R), R * rng.uniform(0.9, 1.4)))
-        # inked all round, then filled again a little smaller, so that only the
-        # outside edge of the bush keeps its ink, scalloped; and a few curl marks
-        ink = max(2, R // 3)
-        for cx, cy, rr in blobs:
-            d.ellipse([cx - rr - ink, cy - rr - ink, cx + rr + ink, cy + rr + ink], fill=(40, 26, 14, 255))
-        for cx, cy, rr in blobs:
-            d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=(236, 196, 92, 255))
-        for cx, cy, rr in blobs[::3]:
-            d.arc([cx - rr * 0.6, cy - rr * 0.6, cx + rr * 0.6, cy + rr * 0.6], 200, 340, fill=(190, 140, 50, 255), width=max(1, ink // 2))
-    curls.alpha_composite(Image.fromarray(out.astype(np.uint8), "RGBA"))
-    curls.save(path_out)
-
 def main():
     subprocess.run(["mkdir", "-p", OUT], check=True)
     g = drawings(key(load(f"{SRC}/groucho.jpeg")), 16, "groucho")
@@ -182,17 +133,15 @@ def main():
     for n, p in zip(names, g):
         frame(p, k, f"{OUT}/g_{n}.png")
 
-    # his reflection, who is Harpo: from harpo.jpeg, the same sheet redrawn with him
-    # (see assets/PROMPTS.md), or failing that made from Groucho's frames
+    # His reflection, who is Harpo, is for now drawn with the four Harpo frames below.
+    # Given harpo.jpeg, the same sheet redrawn with him (see assets/PROMPTS.md), the
+    # sixteen frames are cut from it as hp_* for src/mirror.c to use instead.
     import os
     if os.path.exists(f"{SRC}/harpo.jpeg"):
         hp = drawings(key(load(f"{SRC}/harpo.jpeg")), 16, "harpo")
         k = 480 / hp[4].shape[0]
         for n, p in zip(names, hp):
             frame(p, k, f"{OUT}/hp_{n}.png")
-    else:
-        for n in names:
-            harpo(f"{OUT}/g_{n}.png", f"{OUT}/hp_{n}.png")
     o = drawings(key(load(f"{SRC}/others.jpeg")), 12, "others")
     del o[3]          # the hat he is dropping: the show drops its own, from his hand
     flip = [p[:, ::-1] for p in o[:8]]
