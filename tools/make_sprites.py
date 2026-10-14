@@ -105,7 +105,7 @@ def drawings(a, expect, name):
 
 def save(rgba, w, h, path):
     subprocess.run(["magick", "-size", f"{rgba.shape[1]}x{rgba.shape[0]}", "-depth", "8", "RGBA:-",
-                    "-filter", "Lanczos", "-resize", f"{w}x{h}!", "-define", "png:compression-level=9", path],
+                    "-filter", "Lanczos", "-resize", f"{w}x{h}!", "-define", "png:compression-level=9", "-define", "png:exclude-chunk=date,time", path],
                    input=np.ascontiguousarray(rgba).tobytes(), check=True)
 
 def frame(p, k, path):
@@ -181,7 +181,18 @@ def main():
     k = 480 / g[4].shape[0]                        # standing, he is 480 high
     for n, p in zip(names, g):
         frame(p, k, f"{OUT}/g_{n}.png")
-        harpo(f"{OUT}/g_{n}.png", f"{OUT}/hp_{n}.png")   # his reflection, who is Harpo
+
+    # his reflection, who is Harpo: from harpo.jpeg, the same sheet redrawn with him
+    # (see assets/PROMPTS.md), or failing that made from Groucho's frames
+    import os
+    if os.path.exists(f"{SRC}/harpo.jpeg"):
+        hp = drawings(key(load(f"{SRC}/harpo.jpeg")), 16, "harpo")
+        k = 480 / hp[4].shape[0]
+        for n, p in zip(names, hp):
+            frame(p, k, f"{OUT}/hp_{n}.png")
+    else:
+        for n in names:
+            harpo(f"{OUT}/g_{n}.png", f"{OUT}/hp_{n}.png")
     o = drawings(key(load(f"{SRC}/others.jpeg")), 12, "others")
     del o[3]          # the hat he is dropping: the show drops its own, from his hand
     flip = [p[:, ::-1] for p in o[:8]]
@@ -199,7 +210,7 @@ def main():
     w, h = map(int, subprocess.check_output(["magick", "identify", "-format", "%w %h", f"{OUT}/room.jpg"]).split())
     hole = " ".join(f"{x * w:.1f},{y * h:.1f}" for x, y in OPENING)
     subprocess.run(["magick", f"{OUT}/room.jpg", "(", "-size", f"{w}x{h}", "xc:white", "-fill", "black", "-draw", f"polygon {hole}", ")",
-                    "-alpha", "off", "-compose", "copy_opacity", "-composite", "-define", "png:compression-level=9", f"{OUT}/room_front.png"], check=True)
+                    "-alpha", "off", "-compose", "copy_opacity", "-composite", "-define", "png:compression-level=9", "-define", "png:exclude-chunk=date,time", f"{OUT}/room_front.png"], check=True)
     print("room")
 
 if __name__ == "__main__":
