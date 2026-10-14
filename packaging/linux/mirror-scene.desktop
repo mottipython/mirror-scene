@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=The Mirror Scene
+Comment=A broken mirror, two men in nightshirts, and one of them is not a reflection
+Exec=mirror-scene --window
+Icon=mirror-scene
+Categories=Game;LogicGame;Education;Math;
+Keywords=comedy;cartoon;mirror;screensaver;

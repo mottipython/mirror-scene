@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=The Mirror Scene
+Comment=A broken mirror, two men in nightshirts, and one of them is not a reflection
+Exec=mirror-scene
+TryExec=mirror-scene
+X-Screensaver-Standalone=true
+X-Screensaver-Snapshot=mirror-scene --snapshot %o --size %wx%h --time 20

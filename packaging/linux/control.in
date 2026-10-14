@@ -1,0 +1,17 @@
+Package: mirror-scene
+Version: @VERSION@
+Section: games
+Priority: optional
+Architecture: @ARCH@
+Depends: libc6 (>= 2.38), libsdl2-2.0-0 (>= 2.0.18), swayidle
+Installed-Size: @SIZE@
+Maintainer: Motti Schleider <motti.schleider@gmail.com>
+Description: The mirror scene, a cartoon screensaver
+ A cartoon homage to the mirror gag of 1930s screen comedy: a man in a
+ nightshirt and nightcap creeps up to a mirror whose glass is gone, and the
+ man on the other side copies his every move, almost. Dances, ducks, hat
+ swaps and a dropped hat, until a third man in the same disguise walks
+ through the frame.
+ .
+ On Wayland desktops it starts by itself after five minutes idle.
+ mirror-scene-screensaver changes the delay or turns it off.

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=The Mirror Scene screensaver
+Comment=Start the Mirror Scene when the session has been idle
+Exec=mirror-scene-screensaver watch
+Icon=mirror-scene
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
