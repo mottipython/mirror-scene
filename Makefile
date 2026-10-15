@@ -1,5 +1,5 @@
 # The Mirror Scene - a cartoon screensaver of the mirror gag
-VERSION  := 0.1.0
+VERSION  := 1.0.0
 PREFIX   ?= /usr
 SYSCONFDIR ?= /etc
 DESTDIR  ?=

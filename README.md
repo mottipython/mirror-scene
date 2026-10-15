@@ -54,7 +54,7 @@ Packages are on the [releases page](../../releases).
 
 For Windows 10 or 11, step by step:
 
-1. [**Download The Mirror Scene**](https://github.com/mottipython/mirror-scene/releases/latest/download/MirrorScene-Setup-0.1.0.exe).
+1. [**Download The Mirror Scene**](https://github.com/mottipython/mirror-scene/releases/latest/download/MirrorScene-Setup-1.0.0.exe).
 2. If the browser says the file "isn't commonly downloaded" or "could harm your
    device", click the **⋯** (or **^**) beside it and choose **Keep**, then **Keep
    anyway**.
@@ -94,11 +94,11 @@ screen until you press a key.
 
 **Fedora, Nobara** (built on Fedora 44):
 
-    sudo dnf install ./mirror-scene-0.1.0-1.fc44.x86_64.rpm
+    sudo dnf install ./mirror-scene-1.0.0-1.fc44.x86_64.rpm
 
 **Debian, Ubuntu, Mint** (Ubuntu 24.04 / Debian 13 or later):
 
-    sudo apt install ./mirror-scene_0.1.0_amd64.deb
+    sudo apt install ./mirror-scene_1.0.0_amd64.deb
 
 From your next login it starts by itself after five minutes idle, and any key or
 mouse movement ends it. To start the watcher without logging out, or to change the

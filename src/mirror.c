@@ -528,7 +528,9 @@ static void draw_scene(SDL_Renderer *r, int w, int h)
      * everyone on the near side. */
     Pose gp = g_at(T), hp = h_at(T), cp = at(&C, T, C_WALK, 2, 0.06);
     for (int side = 1; side >= 0; side--) {
-        if (cp.pose >= 0 && (cp.x >= 0.5) == side) person(cp);
+        /* Chico stops in the doorway of the frame: there he is drawn on our side,
+         * so the threshold does not cut off his feet */
+        if (cp.pose >= 0 && (cp.x >= 0.58) == side) person(cp);
         flush(r);
         for (int i = 0; i < nhat; i++) {             /* hats lying or flying */
             const Flight *f = &hats[i];
