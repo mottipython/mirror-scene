@@ -52,10 +52,26 @@ Packages are on the [releases page](../../releases).
 
 ### Windows
 
-Run `MirrorScene-Setup-0.1.0.exe`. It asks for administrator rights, because Windows
-only lists screensavers that are in its own system folder. After that "The Mirror
-Scene" is in Screen Saver Settings with the others, already selected. Uninstall from
-Apps.
+For Windows 10 or 11, step by step:
+
+1. [**Download The Mirror Scene**](https://github.com/mottipython/mirror-scene/releases/latest/download/MirrorScene-Setup-0.1.0.exe).
+2. If the browser says the file "isn't commonly downloaded" or "could harm your
+   device", click the **⋯** (or **^**) beside it and choose **Keep**, then **Keep
+   anyway**.
+3. Open the downloaded file (click it at the top or bottom of the browser, or find
+   it in the **Downloads** folder).
+4. A blue box may say **"Windows protected your PC"**. Click **More info**, then
+   **Run anyway**. (It says this because the program isn't signed with a paid
+   certificate, not because anything is wrong with it.)
+5. Windows asks **"Do you want to allow this app to make changes?"** Click **Yes**.
+   (Windows only lists screen savers kept in its own system folder.)
+6. Click **Next**, then **Install**, then **Finish**. The Screen Saver Settings open
+   with "The Mirror Scene" already chosen. Click **OK**.
+
+It comes on by itself when the computer has been left alone. To pick a different
+one later, type **screen saver** in the Start menu search and open **Change screen
+saver**. To remove it, open **Settings**, **Apps**, find it in the list and choose
+**Uninstall**.
 
 ### macOS
 
