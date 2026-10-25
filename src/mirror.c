@@ -644,6 +644,10 @@ static int snapshot(void)
 
 static void usage(void)
 {
+    if (getenv("SDL_VIDEODRIVER") && !strcmp(getenv("SDL_VIDEODRIVER"), "dummy")) {
+        fprintf(stderr, "The Mirror Scene screensaver options:\n  --window\n  --snapshot FILE.bmp\n  --size WxH\n  --time SECONDS\n");
+        return;
+    }
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "The Mirror Scene",
         "The Mirror Scene screensaver\n\n"
         "  --window        run in a window (Esc or Q quits)\n"
@@ -667,11 +671,15 @@ int main(int argc, char **argv)
         else if (!strcmp(a, "--speed") && i + 1 < argc) opt_speed = SDL_atof(argv[++i]);
         else if (!strcmp(a, "--seed") && i + 1 < argc) opt_seed = SDL_strtoull(argv[++i], NULL, 10);
         else if (!strcmp(a, "--snapshot") && i + 1 < argc) opt_snapshot = argv[++i];
-        else if (!strcmp(a, "--time") && i + 1 < argc) opt_time = SDL_atof(argv[++i]);
+        else if (!strcmp(a, "--time") && i + 1 < argc) {
+            opt_time = SDL_atof(argv[++i]);
+            if (opt_time < 0) opt_time = 0;
+            if (opt_time > 86400) opt_time = 86400;
+        }
         else if (!strcmp(a, "--size") && i + 1 < argc) {
             const char *x = SDL_strchr(argv[++i], 'x');
             opt_w = SDL_atoi(argv[i]); opt_h = x ? SDL_atoi(x + 1) : 0;
-            if (opt_w < 64 || opt_h < 64) { usage(); return 1; }
+            if (opt_w < 64 || opt_h < 64 || opt_w > 8192 || opt_h > 8192) { usage(); return 1; }
         }
         else { usage(); return 1; }
     }
